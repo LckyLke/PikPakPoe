@@ -1,9 +1,13 @@
 from player import HumanPlayer
+from player import BotPlayer
 
 class TicTacToe:
     def __init__(self):
         self.board = [[' ' for _ in range(3)] for x in range (3)]
         self.current_winner = None
+
+    def reset_board(self):
+        self.board = [[' ' for _ in range(3)] for x in range (3)]
 
     def print_board(self):
         for row in self.board:
@@ -19,20 +23,20 @@ class TicTacToe:
         return moves
 
     def num_empty_fields(self):
-        return len([y[x] for x in range(3) for y in self.board])
+        return len([y[x] for x in range(3) for y in self.board if y[x] == " "])
 
-    def place_move(self, letter, pos):
+    def place_move(self, letter, pos, doprint=False):
         if pos <= 3:
             self.board[0][pos - 1] = letter
-            self.print_board()
+            if doprint: self.print_board()
             return
         if pos <= 6:
             self.board[1][pos - 4] = letter
-            self.print_board()
+            if doprint: self.print_board()
             return
         if pos <= 9:
             self.board[2][pos - 7] = letter
-            self.print_board()
+            if doprint: self.print_board()
             return
     def check_win(self, player):
         for row in self.board:
@@ -48,21 +52,56 @@ class TicTacToe:
 
 
 
-def play(game, x_player, y_player):
-    game.print_board()
-    while game.num_empty_fields() > 0:
+def play(rounds=1, doprint=False):
+    choosePs = input("Choose types of player (bb for bot v bot and pp for player v player and bp for bot v player)")
+    if choosePs == "pp":
+        x_player = HumanPlayer()
+        y_player = HumanPlayer('X')
+    elif choosePs == "bp":
+        x_player = HumanPlayer()
+        y_player = BotPlayer('X')
+    elif choosePs == 'bb':
+        x_player = BotPlayer()
+        y_player = BotPlayer('X')
+    else:
+        print('Invalid input try again!')
+        play(rounds)
 
-        x_player.set_move(game)
-        if(game.check_win(x_player)):
-            print(f'{x_player.letter} won the game!')
-            return
-        y_player.set_move(game)
-        if(game.check_win(y_player)):
-            print(f'{y_player.letter} won the game!')
-            return
+    xcount, ycount, drawcount = (0,0,0)
 
-p1 = HumanPlayer('O')
-p2 = HumanPlayer('X')
-game1 = TicTacToe()
 
-play(game1, p1, p2)
+    for _ in range(rounds):
+        game = TicTacToe()
+        if doprint: game.print_board()
+        if doprint: print('_' * 20)
+        while game.num_empty_fields() > 0:
+            x_player.set_move(game, doprint)
+            if doprint: print("_" * 20)
+            if game.check_win(x_player):
+                if doprint: print(f'{x_player.letter} won the game!')
+                xcount += 1
+                break
+            if game.num_empty_fields() == 0:
+                if doprint: print("draw")
+                drawcount += 1
+                break
+            y_player.set_move(game, doprint)
+            if doprint: print("_" * 20)
+            if game.check_win(y_player):
+                if doprint: print(f'{y_player.letter} won the game!')
+                ycount += 1
+                break
+        game.reset_board()
+
+
+
+
+
+    print(f'O won {xcount} and X won {ycount}! Draws: {drawcount}')
+    print(f'O won {xcount/rounds * 100}% of the time')
+    print(f'X won {ycount/rounds * 100}% of the time')
+    print(f'Draws: {drawcount/rounds * 100} of the time')
+    print(f'sum check: {xcount + ycount + drawcount} = {rounds}')
+
+
+play(int(input("Enter the amount of rounds you want to play")), True)
